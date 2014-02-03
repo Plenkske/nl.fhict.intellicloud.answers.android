@@ -4,6 +4,8 @@ package nl.fhict.intellicloud.answers;
 import nl.fhict.intellicloud.answers.backendcommunication.DummyBackend;
 import nl.fhict.intellicloud.answers.backendcommunication.IAnswerService;
 import java.util.List;
+
+import nl.fhict.intellicloud.answers.backendcommunication.AnswerDataSource;
 import nl.fhict.intellicloud.answers.backendcommunication.IQuestionService;
 import nl.fhict.intellicloud.answers.backendcommunication.IReviewService;
 import nl.fhict.intellicloud.answers.backendcommunication.QuestionDataSource;
@@ -37,9 +39,10 @@ public class ReviewOverviewActivity extends Activity {
 		reviewInt = getIntent().getExtras().getInt("reviewInt");
 
 		IQuestionService iQuestionService = new QuestionDataSource(getApplicationContext());
+		IAnswerService iAnswerService = new AnswerDataSource(getApplicationContext());
 		final IReviewService iReviewService = new ReviewDataSource(getApplicationContext());
 		question = iQuestionService.GetQuestion(reviewInt);
-		answer = question.getAnswer();
+		answer = iAnswerService.GetAnswerUsingQuestion(question.getId());
 		
 		TextView tvQuestion = (TextView) findViewById(R.id.tvQuestion);
 		tvQuestion.setText(question.getQuestion());
@@ -56,14 +59,14 @@ public class ReviewOverviewActivity extends Activity {
 		btnDeclineAnswer.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v){
-				Intent intent = new Intent(ReviewOverviewActivity.this, AddReviewActivity.class);
+				Intent intent = new Intent(getApplicationContext(), AddReviewActivity.class);
 				
-		ListView lvReviews = (ListView) findViewById(R.id.lvReviews);
-		List<Review> reviews = iReviewService.GetReviews(answer.getId());
-		if(reviews != null && reviews.size() > 0){
-			//TODO: ADD Reviews in list
-			//lvReviews.setAdapter();
-		}
+				ListView lvReviews = (ListView) findViewById(R.id.lvReviews);
+				List<Review> reviews = iReviewService.GetReviews(answer.getId());
+				if(reviews != null && reviews.size() > 0){
+					//TODO: ADD Reviews in list
+					//lvReviews.setAdapter();
+				}
 				startActivity(intent);
 				finish();
 			}
@@ -73,7 +76,7 @@ public class ReviewOverviewActivity extends Activity {
 		btnAcceptAnswer.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v){
-				Intent intent = new Intent(ReviewOverviewActivity.this, AddReviewActivity.class);
+				Intent intent = new Intent(getApplicationContext(), AddReviewActivity.class);
 				startActivity(intent);
 				finish();
 			}
