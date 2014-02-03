@@ -3,6 +3,7 @@ package nl.fhict.intellicloud.answers;
 
 import nl.fhict.intellicloud.answers.backendcommunication.DummyBackend;
 import nl.fhict.intellicloud.answers.backendcommunication.IAnswerService;
+
 import java.util.List;
 
 import nl.fhict.intellicloud.answers.backendcommunication.AnswerDataSource;
@@ -11,6 +12,7 @@ import nl.fhict.intellicloud.answers.backendcommunication.IReviewService;
 import nl.fhict.intellicloud.answers.backendcommunication.QuestionDataSource;
 import nl.fhict.intellicloud.answers.backendcommunication.ReviewDataSource;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -24,6 +26,7 @@ import android.widget.TextView;
 public class ReviewOverviewActivity extends Activity {
 
 	int reviewInt;
+	Context context;
 	
 	Answer answer;
 	Question question;
@@ -31,18 +34,20 @@ public class ReviewOverviewActivity extends Activity {
 	
 	EditText etReviewField;
 	IReviewService iReviewService;
+	IAnswerService iAnswerService;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_review_overview);
 		reviewInt = getIntent().getExtras().getInt("reviewInt");
+		this.context = this;
 
 		IQuestionService iQuestionService = new QuestionDataSource(getApplicationContext());
-		IAnswerService iAnswerService = new AnswerDataSource(getApplicationContext());
+		final IAnswerService iAnswerService = new AnswerDataSource(getApplicationContext());
 		final IReviewService iReviewService = new ReviewDataSource(getApplicationContext());
 		question = iQuestionService.GetQuestion(reviewInt);
-		answer = iAnswerService.GetAnswerUsingQuestion(question.getId());
+		answer = iAnswerService.GetAnswerUsingQuestion(reviewInt);
 		
 		TextView tvQuestion = (TextView) findViewById(R.id.tvQuestion);
 		tvQuestion.setText(question.getQuestion());
@@ -59,14 +64,19 @@ public class ReviewOverviewActivity extends Activity {
 		btnDeclineAnswer.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v){
+
 				Intent intent = new Intent(getApplicationContext(), AddReviewActivity.class);
+
 				
 				ListView lvReviews = (ListView) findViewById(R.id.lvReviews);
 				List<Review> reviews = iReviewService.GetReviews(answer.getId());
 				if(reviews != null && reviews.size() > 0){
 					//TODO: ADD Reviews in list
-					//lvReviews.setAdapter();
+					//lvReviews.setAdapter();					
 				}
+				
+				intent.putExtra("reviewInt", reviewInt);
+
 				startActivity(intent);
 				finish();
 			}
@@ -76,8 +86,13 @@ public class ReviewOverviewActivity extends Activity {
 		btnAcceptAnswer.setOnClickListener(new OnClickListener(){
 			@Override
 			public void onClick(View v){
+
 				Intent intent = new Intent(getApplicationContext(), AddReviewActivity.class);
 				startActivity(intent);
+
+				answer.setAnswerState(AnswerState.Ready);
+				iAnswerService.UpdateAnswer(answer);
+
 				finish();
 			}
 		});
